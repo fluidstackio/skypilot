@@ -82,7 +82,9 @@ SCP = clouds.SCP
 Local = clouds.Local
 Kubernetes = clouds.Kubernetes
 OCI = clouds.OCI
+RunPod = clouds.RunPod
 optimize = Optimizer.optimize
+Fluidstack = clouds.Fluidstack
 
 __all__ = [
     '__version__',
@@ -92,8 +94,10 @@ __all__ = [
     'IBM',
     'Kubernetes',
     'Lambda',
+    'Fluidstack',
     'Local',
     'OCI',
+    'RunPod',
     'SCP',
     'Optimizer',
     'OptimizeTarget',

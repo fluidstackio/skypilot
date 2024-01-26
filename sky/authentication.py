@@ -41,7 +41,9 @@ from sky import sky_logging
 from sky import skypilot_config
 from sky.adaptors import gcp
 from sky.adaptors import ibm
+from sky.adaptors import runpod
 from sky.clouds.utils import lambda_utils
+from sky.skylet.providers.fluidstack import fluidstack_utils
 from sky.utils import common_utils
 from sky.utils import kubernetes_enums
 from sky.utils import kubernetes_utils
@@ -322,6 +324,19 @@ def setup_lambda_authentication(config: Dict[str, Any]) -> Dict[str, Any]:
     return config
 
 
+def setup_fluidstack_authentication(config: Dict[str, Any]) -> Dict[str, Any]:
+    get_or_generate_keys()
+
+    client = fluidstack_utils.FluidstackClient()
+    public_key_path = os.path.expanduser(PUBLIC_SSH_KEY_PATH)
+    public_key = None
+    with open(public_key_path, 'r') as f:
+        public_key = f.read()
+    client.get_or_add_ssh_key(public_key)
+    config['auth']['ssh_public_key'] = PUBLIC_SSH_KEY_PATH
+    return configure_ssh_info(config)
+
+
 def setup_ibm_authentication(config):
     """ registers keys if they do not exist in sky folder
     and updates config file.
@@ -449,3 +464,17 @@ def setup_kubernetes_authentication(config: Dict[str, Any]) -> Dict[str, Any]:
     config['auth']['ssh_proxy_command'] = ssh_proxy_cmd
 
     return config
+
+
+# ---------------------------------- RunPod ---------------------------------- #
+def setup_runpod_authentication(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Sets up SSH authentication for RunPod.
+    - Generates a new SSH key pair if one does not exist.
+    - Adds the public SSH key to the user's RunPod account.
+    """
+    _, public_key_path = get_or_generate_keys()
+    with open(public_key_path, 'r', encoding='UTF-8') as pub_key_file:
+        public_key = pub_key_file.read().strip()
+        runpod.runpod().cli.groups.ssh.functions.add_ssh_key(public_key)
+
+    return configure_ssh_info(config)
